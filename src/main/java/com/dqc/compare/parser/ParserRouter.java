@@ -72,8 +72,11 @@ public class ParserRouter {
             return new ParseDirectoryResult(all, failedFiles, emptyFiles, 0);
         }
         List<Path> files;
-        try (var stream = Files.walk(dir)) {
+        // 先归一化为绝对路径：相对路径如 ./data/input 含 "." 段，会误判为隐藏路径
+        Path start = dir.toAbsolutePath().normalize();
+        try (var stream = Files.walk(start)) {
             files = stream.filter(Files::isRegularFile)
+                    .filter(p -> !isHiddenPath(p))
                     .sorted(Comparator.comparing(Path::toString))
                     .toList();
         } catch (Exception e) {
@@ -94,5 +97,16 @@ public class ParserRouter {
             }
         }
         return new ParseDirectoryResult(all, failedFiles, emptyFiles, files.size());
+    }
+
+    /** 跳过隐藏文件/目录（如回收站 .trash），避免其被当作元数据源解析。 */
+    private boolean isHiddenPath(Path p) {
+        for (Path part : p) {
+            String n = part.getFileName() == null ? "" : part.getFileName().toString();
+            if (n.startsWith(".")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

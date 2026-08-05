@@ -135,9 +135,20 @@ public class FileApiController {
             if (!Files.exists(target)) {
                 return ResponseEntity.status(404).body(Map.of("error", "文件不存在：" + cleanName));
             }
-            Files.delete(target);
-            log.info("文件已删除：源={} 文件={}", source, cleanName);
-            return ResponseEntity.ok(Map.of("deleted", cleanName));
+            // 不物理删除：移入回收站（data/input/.trash），避免业务人员误删元数据源文件后无法找回
+            Path trashDir = Paths.get(appProperties.getInput().getBaseDir(), ".trash", dirRel);
+            Files.createDirectories(trashDir);
+            Path dest = trashDir.resolve(cleanName);
+            if (Files.exists(dest)) {
+                dest = trashDir.resolve(System.currentTimeMillis() + "-" + cleanName);
+            }
+            Files.move(target, dest);
+            log.info("文件已移入回收站：源={} 文件={} -> {}", source, cleanName, dest);
+            Map<String, Object> resp = new LinkedHashMap<>();
+            resp.put("deleted", cleanName);
+            resp.put("trashed", true);
+            resp.put("trashPath", dest.toString());
+            return ResponseEntity.ok(resp);
         } catch (IOException e) {
             return ResponseEntity.status(500).body(Map.of("error", "删除失败：" + e.getMessage()));
         }

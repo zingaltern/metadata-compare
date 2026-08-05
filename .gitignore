@@ -13,3 +13,6 @@ logs/
 # 本地环境
 *.log
 *.tmp
+
+# 回收站（文件管理里"删除"的文件）
+data/input/.trash/

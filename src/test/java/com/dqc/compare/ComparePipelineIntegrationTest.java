@@ -36,6 +36,9 @@ class ComparePipelineIntegrationTest {
     void sampleData_runMatchesAcceptanceSignature() throws Exception {
         Path input = tempDir.resolve("input");
         copyRecursively(Path.of("data/input"), input);
+        // 回收站/隐藏文件不应被当作元数据源解析（如 .trash、.DS_Store）
+        Files.writeString(input.resolve("production/latest/.trash_backup.sql"), "CREATE TABLE GHOST (ID INT);");
+        Files.writeString(input.resolve("production/latest/.DS_Store"), "junk");
 
         CompareTaskConfig config = new CompareTaskConfig();
         config.setTaskName("e2e-sample");
@@ -62,6 +65,11 @@ class ComparePipelineIntegrationTest {
         assertEquals(3, soa.getEntityCount());
         assertEquals(0, soa.getFailedFileCount());
         assertTrue(soa.isHealthy());
+        SourceHealth prod = report.getSourceHealth().stream()
+                .filter(h -> h.getSourceType() == SourceType.PRODUCTION_DDL)
+                .findFirst().orElseThrow();
+        assertEquals(4, prod.getEntityCount(), "隐藏文件不应被解析为表");
+        assertEquals(2, prod.getFileCount(), "隐藏文件不应计入源文件数");
 
         // 关键命中与字段归因（中文字段名精确指向来源侧）
         assertTrue(report.getResults().stream().anyMatch(r ->
