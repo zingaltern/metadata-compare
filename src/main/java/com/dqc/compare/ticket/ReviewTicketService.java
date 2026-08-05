@@ -55,10 +55,6 @@ public class ReviewTicketService {
         t.setTicketNo(generateTempTicketNo());
         ticketMapper.insert(t);
         t.setTicketNo(generateTicketNo(t.getId()));
-        if (recipients != null && !recipients.isBlank()) {
-            boolean sent = mailService.sendTicketNotification(recipients, t);
-            t.setNotified(sent);
-        }
         ticketMapper.updateById(t);
         log.info("创建复核工单 {}（规则={}, 表={}, 字段={}）", t.getTicketNo(), rule.getName(), tableName, fieldName);
         return t;

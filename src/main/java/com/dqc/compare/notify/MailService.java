@@ -15,6 +15,8 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 邮件通知服务（对应文档 4.4 / 3.2）。
@@ -29,6 +31,12 @@ public class MailService {
     private final MailProperties mailProperties;
     private final Configuration freemarker;
     private boolean enabled;
+    /** 邮件发送线程池：比对主流程不等待邮件，触发后立即返回 */
+    private final ExecutorService mailExecutor = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "mail-worker");
+        t.setDaemon(true);
+        return t;
+    });
 
     public MailService(JavaMailSender mailSender, MailProperties mailProperties) {
         this.mailSender = mailSender;
@@ -110,6 +118,22 @@ public class MailService {
             log.warn("发送汇总邮件失败：{}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * 异步发送运行汇总邮件（含新增工单清单）：不阻塞比对主流程。
+     */
+    public void sendRunSummaryAsync(String to, Map<String, Object> model) {
+        mailExecutor.submit(() -> {
+            try {
+                boolean sent = sendRunSummary(to, model);
+                if (!sent) {
+                    log.debug("汇总邮件未发送（SMTP 未配置或发送失败）：{}", to);
+                }
+            } catch (Exception e) {
+                log.warn("异步发送汇总邮件失败：{} -> {}", to, e.getMessage());
+            }
+        });
     }
 
     private String[] split(String to) {

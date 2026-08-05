@@ -441,8 +441,10 @@ public class ComparePipeline {
         model.put("ticketCount", report.getTicketCount());
         model.put("durationMs", report.getDurationMs());
         model.put("sourceHealthSummary", report.getSourceHealthSummary());
+        model.put("tickets", report.getTickets());
         try {
-            mailService.sendRunSummary(config.getRecipients(), model);
+            // 异步发送：邮件不阻塞比对主流程；每次运行只发一封汇总邮件（含新增工单清单）
+            mailService.sendRunSummaryAsync(config.getRecipients(), model);
         } catch (Exception e) {
             log.debug("汇总邮件发送跳过：{}", e.getMessage());
         }
