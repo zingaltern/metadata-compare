@@ -19,17 +19,19 @@
 前置：JDK 17、Maven 3.8+。
 
 ```bash
-mvn -o package          # 构建（含测试）
-java -jar target/metadata-compare.jar --server.port=8080
+mvn -o package          # 构建（含测试）；若本地仓库缺依赖报错，去掉 -o 联网构建：mvn package
+java -jar target/metadata-compare.jar --server.port=8080   # 8080 被占用时换一个空闲端口，如 8090
 ```
 
 启动后：
 
 - 控制台：http://localhost:8080（默认账号 `admin / admin123`，生产务必修改）
-- 触发一次比对：`curl -X POST -u admin:admin123 "http://localhost:8080/api/compare/trigger?configId=1"`
+- 触发一次比对：`curl -X POST -u admin:admin123 "http://localhost:8080/api/compare/trigger?configId=1"`（端口按你实际启动的端口改）
 - H2 控制台：http://localhost:8080/h2-console（JDBC `jdbc:h2:mem:dqc`，用户 `sa`，空密码）
 
 > 注意：若环境注入了 `SERVER__PORT` 环境变量，它会覆盖配置端口。可用 `env -u SERVER__PORT java -jar ...` 或 `--server.port=8080` 显式指定。
+
+> **端口被占用**：启动报 `Port 8080 was already in use` 时，先 `lsof -iTCP:8080 -sTCP:LISTEN` 查看占用进程；与本系统无关的服务在跑时，直接换个端口启动即可：`java -jar target/metadata-compare.jar --server.port=8090`，后续访问与 curl 都改用 8090。
 
 内置样例数据（`data/input/`）一次比对的预期结果：**total=6 / critical=2 / warning=4 / ticket=2**（详见下文“样例数据”）。
 
