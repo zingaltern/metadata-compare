@@ -21,9 +21,10 @@
 前置：JDK 17、Maven 3.8+。
 
 ```bash
-# ① 先进入项目目录（含 pom.xml 的目录），否则会报 "no POM in this directory"
-cd /Users/zingaltern/WorkBuddy/2026-07-27-21-43-25/metadata-compare
-# 如果是自己 clone 的仓库：git clone https://github.com/zingaltern/metadata-compare.git && cd metadata-compare
+# ① 克隆并进入项目目录（仓库根目录含 pom.xml；必须在含 pom.xml 的目录执行，否则报 "no POM in this directory"）
+git clone https://github.com/zingaltern/metadata-compare.git
+cd metadata-compare
+# 如果已手动下载/解压，直接 cd 进含 pom.xml 的目录即可
 
 # ② 构建（含测试）；若本地仓库缺依赖报错，去掉 -o 联网构建：mvn package
 mvn -o package          # 构建（含测试）；若本地仓库缺依赖报错，去掉 -o 联网构建：mvn package
