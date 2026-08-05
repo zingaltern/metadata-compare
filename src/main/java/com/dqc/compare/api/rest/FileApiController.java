@@ -101,6 +101,7 @@ public class FileApiController {
         }
         try (var stream = Files.list(dir)) {
             stream.filter(Files::isRegularFile)
+                    .filter(p -> !p.getFileName().toString().startsWith(".")) // 过滤 .DS_Store 等隐藏文件
                     .sorted((a, b) -> a.getFileName().toString().compareToIgnoreCase(b.getFileName().toString()))
                     .forEach(p -> {
                         Map<String, Object> m = new LinkedHashMap<>();
