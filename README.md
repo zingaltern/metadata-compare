@@ -149,6 +149,9 @@ mappings:
 | `app.rule.timeout-ms` | 3000 | 单规则软超时 |
 | `app.ticket.no-prefix` | RT | 工单前缀 |
 | `app.security.enabled` / `user` / `password` | true / admin / admin123 | 登录鉴权 |
+| `app.base-url` | `http://localhost:8090` | 邮件中工单链接的域名前缀（部署后改实际域名/IP） |
+| `app.notify.recipients` | 空 | 默认任务的邮件收件人（重启后自动恢复，可用 `APP_NOTIFY_RECIPIENTS` 注入） |
+| `app.retention.task-days` / `ticket-days` | 365 / 0 | 任务结果保留天数 / 工单保留天数（0=永久保留） |
 
 ## 生产部署（MySQL）
 

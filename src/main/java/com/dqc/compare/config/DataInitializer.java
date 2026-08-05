@@ -18,9 +18,11 @@ public class DataInitializer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final CompareTaskConfigMapper configMapper;
+    private final AppProperties appProperties;
 
-    public DataInitializer(CompareTaskConfigMapper configMapper) {
+    public DataInitializer(CompareTaskConfigMapper configMapper, AppProperties appProperties) {
         this.configMapper = configMapper;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class DataInitializer implements CommandLineRunner {
         c.setDdmPath("./data/input/ddm");
         c.setSoaPath("./data/input/soa");
         c.setFileSpecPath("./data/input/file_spec");
-        c.setRecipients("");
+        c.setRecipients(appProperties.getNotify().getRecipients());
         configMapper.insert(c);
         log.info("已注入默认比对任务配置：{}", c.getTaskName());
     }

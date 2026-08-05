@@ -431,6 +431,7 @@ public class ComparePipeline {
 
     private void trySendSummary(CompareTaskConfig config, CompareReport report) {
         if (config.getRecipients() == null || config.getRecipients().isBlank()) {
+            log.debug("跳过汇总邮件：任务[{}]未配置收件人", config.getTaskName());
             return;
         }
         Map<String, Object> model = new LinkedHashMap<>();

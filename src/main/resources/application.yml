@@ -77,6 +77,9 @@ app:
   retention:
     task-days: 365      # 任务与结果保留天数，到期每天 03:30 自动清理
     ticket-days: 0      # 工单保留天数；0 = 永久保留（复核审计留痕），需要清理时改为 N 天
+  # 默认任务的邮件收件人（重启后自动恢复；可用环境变量 APP_NOTIFY_RECIPIENTS 注入）
+  notify:
+    recipients: ""
   # 复核工单编号前缀
   ticket:
     no-prefix: RT

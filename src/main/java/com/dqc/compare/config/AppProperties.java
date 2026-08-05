@@ -20,6 +20,7 @@ public class AppProperties {
     /** 对外访问地址（邮件中工单链接用） */
     private String baseUrl = "http://localhost:8090";
     private Retention retention = new Retention();
+    private Notify notify = new Notify();
 
     public static class Input {
         /** 输入文件根目录（按文档 2.4 规范：production/ddm/soa/file_spec） */
@@ -98,6 +99,18 @@ public class AppProperties {
 
     public Retention getRetention() { return retention; }
     public void setRetention(Retention retention) { this.retention = retention; }
+
+    public Notify getNotify() { return notify; }
+    public void setNotify(Notify notify) { this.notify = notify; }
+
+    /** 通知配置 */
+    public static class Notify {
+        /** 默认任务的邮件收件人（重启后 H2 内存库会重置任务配置，收件人从该配置恢复） */
+        private String recipients = "";
+
+        public String getRecipients() { return recipients; }
+        public void setRecipients(String recipients) { this.recipients = recipients; }
+    }
 
     /** 数据保留策略（自动清理，0 = 不清理） */
     public static class Retention {
