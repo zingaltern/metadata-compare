@@ -214,7 +214,7 @@
       </div>
       <div class="row" style="margin-top:10px">
         <span class="muted">状态筛选：</span>
-        <select id="statusSel" onchange="loadTickets()">
+        <select id="statusSel" onchange="ticketsPage=1;loadTickets()">
           <option value="">全部</option>
           <option value="PENDING" selected>待复核</option>
           <option value="CONFIRMED">已确认</option>
@@ -253,7 +253,9 @@ function showTab(name){
   location.hash = name === 'console' ? '' : name;
 }
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
-const initialTab = location.hash.replace('#','');
+const hashParts = location.hash.replace('#','').split('?');
+const initialTab = hashParts[0] || 'console';
+const ticketFocusId = Number(new URLSearchParams(hashParts[1] || '').get('id')) || null;
 showTab(['tasks','tickets'].includes(initialTab) ? initialTab : 'console');
 
 // ---- 触发比对 ----
@@ -374,7 +376,7 @@ updateFmtHint();
 
 // ---- 任务列表（分页） ----
 let tasksPage = 1;
-const TASKS_PAGE_SIZE = 100;
+const TASKS_PAGE_SIZE = 10;
 async function loadTasks(){
   const box = $('taskBox');
   try {
@@ -448,18 +450,26 @@ function renderGroup(title, list){
   return html + '</tbody></table></details>';
 }
 
-// ---- 待复核工单 ----
+// ---- 待复核工单（分页） ----
 let reviewingId = null;
+let ticketsPage = 1;
+const TICKETS_PAGE_SIZE = 10;
 async function loadTickets(){
   const box = $('ticketBox');
   box.innerHTML = '加载中…';
   const status = $('statusSel').value;
   try {
-    const tickets = await apiGet('/api/tickets?status=' + encodeURIComponent(status) + '&page=1&size=500');
+    const res = await fetch('/api/tickets?status=' + encodeURIComponent(status) + '&page=' + ticketsPage + '&size=' + TICKETS_PAGE_SIZE);
+    if (res.status === 401) { throw new Error('登录已过期，请重新登录'); }
+    if (!res.ok) { throw new Error('请求失败：' + res.status); }
+    const total = Number(res.headers.get('X-Total-Count') || 0);
+    const tickets = await res.json();
     if (!tickets.length) { box.innerHTML = '<span class="muted">当前筛选条件下没有工单。</span>'; return; }
+    const totalPages = Math.max(1, Math.ceil(total / TICKETS_PAGE_SIZE));
+    if (ticketsPage > totalPages) { ticketsPage = totalPages; return loadTickets(); }
     let html = '<table><thead><tr><th>工单号</th><th>级别</th><th>表</th><th>字段</th><th>问题描述</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
     for (const t of tickets) {
-      html += '<tr><td>' + esc(t.ticketNo) + '</td><td>' + pill(t.severity) + '</td><td>' + esc(t.tableName)
+      html += '<tr id="ticket-row-' + t.id + '"><td>' + esc(t.ticketNo) + '</td><td>' + pill(t.severity) + '</td><td>' + esc(t.tableName)
         + '</td><td>' + esc(t.fieldName || '(整表)') + '</td><td class="muted">' + esc(t.message) + '</td><td>' + pill(t.status)
         + '</td><td>' + fmt(t.createTime) + '</td>'
         + '<td><button class="ghost" onclick="review(' + t.id + ')">' + (t.status === 'PENDING' ? '复核' : '查看/改') + '</button></td></tr>';
@@ -468,7 +478,17 @@ async function loadTickets(){
       }
     }
     html += '</tbody></table>';
+    html += '<div class="row" style="margin-top:12px"><span class="muted">共 ' + total + ' 条 · 第 ' + ticketsPage + ' / ' + totalPages + ' 页</span>'
+      + '<button class="ghost" ' + (ticketsPage <= 1 ? 'disabled' : '') + ' onclick="ticketsPage--;loadTickets()">上一页</button>'
+      + '<button class="ghost" ' + (ticketsPage >= totalPages ? 'disabled' : '') + ' onclick="ticketsPage++;loadTickets()">下一页</button></div>';
     box.innerHTML = html;
+    if (ticketFocusId) {
+      const el = document.getElementById('ticket-row-' + ticketFocusId);
+      if (el) {
+        el.style.background = '#fef9c3';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
   } catch (e) {
     box.innerHTML = '<div class="err">' + esc(e.message) + '</div>';
   }

@@ -100,6 +100,16 @@ public class ReviewTicketService {
         return ticketMapper.selectList(qw);
     }
 
+    /** 按状态统计工单数（分页展示用）。 */
+    public long countByStatus(String status) {
+        QueryWrapper<ReviewTicket> qw = new QueryWrapper<>();
+        if (status != null && !status.isBlank()) {
+            qw.eq("status", status);
+        }
+        Long c = ticketMapper.selectCount(qw);
+        return c == null ? 0 : c;
+    }
+
     private String generateTicketNo(Long id) {
         String prefix = appProperties.getTicket().getNoPrefix();
         if (id == null) {

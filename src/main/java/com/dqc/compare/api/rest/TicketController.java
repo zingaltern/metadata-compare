@@ -29,10 +29,12 @@ public class TicketController {
 
     /** 工单列表（支持状态筛选：PENDING/CONFIRMED/REJECTED/IGNORED） */
     @GetMapping
-    public List<ReviewTicket> list(@RequestParam(required = false) String status,
-                                   @RequestParam(defaultValue = "1") int page,
-                                   @RequestParam(defaultValue = "200") int size) {
-        return ticketService.listByStatus(status, page, size);
+    public ResponseEntity<List<ReviewTicket>> list(@RequestParam(required = false) String status,
+                                                   @RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(ticketService.countByStatus(status)))
+                .body(ticketService.listByStatus(status, page, size));
     }
 
     /** 提交复核意见，更新工单状态 */

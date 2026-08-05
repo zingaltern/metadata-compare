@@ -17,6 +17,9 @@ public class AppProperties {
     private Rule rule = new Rule();
     private TableMapping tableMapping = new TableMapping();
     private Security security = new Security();
+    /** 对外访问地址（邮件中工单链接用） */
+    private String baseUrl = "http://localhost:8090";
+    private Retention retention = new Retention();
 
     public static class Input {
         /** 输入文件根目录（按文档 2.4 规范：production/ddm/soa/file_spec） */
@@ -89,6 +92,25 @@ public class AppProperties {
 
     public Security getSecurity() { return security; }
     public void setSecurity(Security security) { this.security = security; }
+
+    public String getBaseUrl() { return baseUrl; }
+    public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
+
+    public Retention getRetention() { return retention; }
+    public void setRetention(Retention retention) { this.retention = retention; }
+
+    /** 数据保留策略（自动清理，0 = 不清理） */
+    public static class Retention {
+        /** 任务与结果保留天数（默认 365 天，到期自动清理） */
+        private int taskDays = 365;
+        /** 工单保留天数（默认 0 = 永久保留，作复核审计留痕） */
+        private int ticketDays = 0;
+
+        public int getTaskDays() { return taskDays; }
+        public void setTaskDays(int taskDays) { this.taskDays = taskDays; }
+        public int getTicketDays() { return ticketDays; }
+        public void setTicketDays(int ticketDays) { this.ticketDays = ticketDays; }
+    }
 
     public static class Security {
         /** 是否启用登录鉴权（设为 false 则全员可访问，仅建议本地演示关闭） */

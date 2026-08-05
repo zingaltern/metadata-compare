@@ -25,6 +25,7 @@
                     <th style="padding:6px 8px; text-align:left;">表</th>
                     <th style="padding:6px 8px; text-align:left;">字段</th>
                     <th style="padding:6px 8px; text-align:left;">问题描述</th>
+                    <th style="padding:6px 8px; text-align:left;">操作</th>
                 </tr>
                 <#list tickets as t>
                 <tr>
@@ -33,6 +34,7 @@
                     <td style="padding:6px 8px;">${t.tableName!''}</td>
                     <td style="padding:6px 8px;">${t.fieldName!'（整表）'}</td>
                     <td style="padding:6px 8px;">${t.message!''}</td>
+                    <td style="padding:6px 8px;"><a href="${baseUrl}/#tickets?id=${t.id}">查看工单</a></td>
                 </tr>
                 </#list>
             </table>

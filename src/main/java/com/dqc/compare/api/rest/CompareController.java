@@ -58,7 +58,7 @@ public class CompareController {
     @GetMapping("/tasks")
     public ResponseEntity<List<CompareTask>> tasks(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "100") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(queryService.countTasks()))
                 .body(queryService.listTasks(page, size));

@@ -71,6 +71,12 @@ app:
   # 定时调度：每 N 秒扫描一次到期任务
   scheduler:
     poll-seconds: 30
+  # 对外访问地址：邮件里工单链接的域名前缀（部署到云服务器后改成实际域名/IP）
+  base-url: http://localhost:8090
+  # 数据保留策略（自动清理，0 = 不清理）
+  retention:
+    task-days: 365      # 任务与结果保留天数，到期每天 03:30 自动清理
+    ticket-days: 0      # 工单保留天数；0 = 永久保留（复核审计留痕），需要清理时改为 N 天
   # 复核工单编号前缀
   ticket:
     no-prefix: RT
