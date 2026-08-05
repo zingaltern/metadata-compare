@@ -63,6 +63,12 @@
     .field input:focus{border-color:var(--pri-soft);background:#fff;box-shadow:0 0 0 4px rgba(99,102,241,.14);outline:none}
     .field .ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
     .field input:focus + .ico{color:var(--pri-soft)}
+    .field .eye{
+      position:absolute;right:8px;top:50%;transform:translateY(-50%);
+      background:transparent;border:0;cursor:pointer;padding:6px;border-radius:8px;color:#94a3b8;display:flex;
+    }
+    .field .eye:hover{color:var(--pri-soft);background:#f1f5f9}
+    .field input.pwd{padding-right:44px}
     .submit{
       width:100%;margin-top:8px;padding:13px;border:0;border-radius:11px;cursor:pointer;
       font-size:15px;font-weight:600;color:#fff;
@@ -123,15 +129,21 @@
           <div class="field">
             <label for="username">账号</label>
             <div class="box">
-              <input id="username" name="username" type="text" placeholder="请输入账号" autofocus />
+              <input id="username" name="username" type="text" placeholder="请输入账号" autocomplete="off"
+                     readonly onfocus="this.removeAttribute('readonly')" autofocus />
               <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M5 19c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
             </div>
           </div>
           <div class="field">
             <label for="password">密码</label>
             <div class="box">
-              <input id="password" name="password" type="password" placeholder="请输入密码" />
+              <input id="password" name="password" type="password" placeholder="请输入密码" autocomplete="new-password"
+                     class="pwd" readonly onfocus="this.removeAttribute('readonly')" />
               <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V8a4 4 0 018 0v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <button type="button" class="eye" id="togglePwd" title="显示/隐藏密码" aria-label="显示/隐藏密码">
+                <svg id="eyeOpen" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6"/></svg>
+                <svg id="eyeClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.6 5.6A9.4 9.4 0 0112 5.5c6.5 0 10 6.5 10 6.5a17.5 17.5 0 01-3.2 3.9M6.6 7.7A16.6 16.6 0 002 12s3.5 6.5 10 6.5c1 0 1.9-.14 2.8-.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
             </div>
           </div>
           <button class="submit" type="submit">登 录</button>
@@ -148,6 +160,14 @@
     if (params.get('error') === 'true') {
       document.getElementById('alert').classList.add('show');
     }
+    // 密码显示/隐藏切换
+    document.getElementById('togglePwd').addEventListener('click', () => {
+      const p = document.getElementById('password');
+      const show = p.type === 'password';
+      p.type = show ? 'text' : 'password';
+      document.getElementById('eyeOpen').style.display = show ? 'none' : '';
+      document.getElementById('eyeClosed').style.display = show ? '' : 'none';
+    });
     // 回车聚焦密码框
     document.getElementById('username').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('password').focus();
