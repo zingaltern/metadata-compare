@@ -56,8 +56,12 @@ public class CompareController {
 
     /** 任务列表 */
     @GetMapping("/tasks")
-    public List<CompareTask> tasks() {
-        return queryService.listTasks();
+    public ResponseEntity<List<CompareTask>> tasks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(queryService.countTasks()))
+                .body(queryService.listTasks(page, size));
     }
 
     /** 任务结果明细 */

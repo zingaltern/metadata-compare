@@ -372,12 +372,20 @@ async function delFile(src, name){
 refreshFiles();
 updateFmtHint();
 
-// ---- 任务列表 ----
+// ---- 任务列表（分页） ----
+let tasksPage = 1;
+const TASKS_PAGE_SIZE = 100;
 async function loadTasks(){
   const box = $('taskBox');
   try {
-    const tasks = await apiGet('/api/compare/tasks');
+    const res = await fetch('/api/compare/tasks?page=' + tasksPage + '&size=' + TASKS_PAGE_SIZE);
+    if (res.status === 401) { throw new Error('登录已过期，请重新登录'); }
+    if (!res.ok) { throw new Error('请求失败：' + res.status); }
+    const total = Number(res.headers.get('X-Total-Count') || 0);
+    const tasks = await res.json();
     if (!tasks.length) { box.innerHTML = '<span class="muted">暂无任务记录，先到控制台「触发一次比对」。</span>'; return; }
+    const totalPages = Math.max(1, Math.ceil(total / TASKS_PAGE_SIZE));
+    if (tasksPage > totalPages) { tasksPage = totalPages; return loadTasks(); }
     let html = '<table><thead><tr><th>ID</th><th>任务名称</th><th>状态</th><th>问题总数</th><th>严重</th><th>警告</th><th>工单</th><th>开始时间</th><th>结束时间</th><th>操作</th></tr></thead><tbody>';
     for (const t of tasks) {
       html += '<tr><td>' + t.id + '</td><td>' + esc(t.taskName) + '</td><td>' + pill(t.status)
@@ -388,6 +396,9 @@ async function loadTasks(){
       if (t.errorMessage) { html += '<tr><td colspan="10" class="err">错误：' + esc(t.errorMessage) + '</td></tr>'; }
     }
     html += '</tbody></table>';
+    html += '<div class="row" style="margin-top:12px"><span class="muted">共 ' + total + ' 条 · 第 ' + tasksPage + ' / ' + totalPages + ' 页</span>'
+      + '<button class="ghost" ' + (tasksPage <= 1 ? 'disabled' : '') + ' onclick="tasksPage--;loadTasks()">上一页</button>'
+      + '<button class="ghost" ' + (tasksPage >= totalPages ? 'disabled' : '') + ' onclick="tasksPage++;loadTasks()">下一页</button></div>';
     box.innerHTML = html;
   } catch (e) {
     box.innerHTML = '<div class="err">' + esc(e.message) + '</div>';

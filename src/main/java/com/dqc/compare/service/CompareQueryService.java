@@ -38,6 +38,21 @@ public class CompareQueryService {
         return taskMapper.selectList(qw);
     }
 
+    /** 任务列表（分页，按 id 倒序；单页上限 500）。 */
+    public List<CompareTask> listTasks(int page, int size) {
+        int limit = Math.min(Math.max(1, size), 500);
+        int offset = Math.max(1, page) == 1 ? 0 : (Math.max(1, page) - 1) * limit;
+        QueryWrapper<CompareTask> qw = new QueryWrapper<>();
+        qw.orderByDesc("id").last("LIMIT " + offset + ", " + limit);
+        return taskMapper.selectList(qw);
+    }
+
+    /** 任务总数（分页展示用）。 */
+    public long countTasks() {
+        Long c = taskMapper.selectCount(new QueryWrapper<>());
+        return c == null ? 0 : c;
+    }
+
     public List<CompareResult> resultsByTask(Long taskId) {
         return resultsByTask(taskId, 1, 200);
     }

@@ -68,8 +68,12 @@ class ComparePipelineIntegrationTest {
         SourceHealth prod = report.getSourceHealth().stream()
                 .filter(h -> h.getSourceType() == SourceType.PRODUCTION_DDL)
                 .findFirst().orElseThrow();
-        assertEquals(4, prod.getEntityCount(), "隐藏文件不应被解析为表");
-        assertEquals(2, prod.getFileCount(), "隐藏文件不应计入源文件数");
+        assertEquals(4, prod.getEntityCount(), "隐藏/未识别文件不应被解析为表");
+        long prodFiles = Files.list(input.resolve("production/latest"))
+                .filter(Files::isRegularFile)
+                .filter(p -> !p.getFileName().toString().startsWith("."))
+                .count();
+        assertEquals(prodFiles, prod.getFileCount(), "源文件数应为目录中非隐藏文件数（用户上传的测试文件会随目录计入）");
 
         // 关键命中与字段归因（中文字段名精确指向来源侧）
         assertTrue(report.getResults().stream().anyMatch(r ->
