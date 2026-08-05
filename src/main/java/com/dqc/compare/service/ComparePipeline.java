@@ -508,8 +508,18 @@ public class ComparePipeline {
                 h.setWarning("输入目录为空或不存在，该数据源未参与比对");
             } else if (h.getEntityCount() == 0) {
                 h.setWarning("该数据源未解析出任何表/实体，请检查输入文件格式或解析器");
-            } else if (h.getFailedFileCount() > 0) {
-                h.setWarning("有 " + h.getFailedFileCount() + " 个文件解析失败，已跳过（结果可能不完整）");
+            } else if (h.getFailedFileCount() > 0 || h.getEmptyFileCount() > 0) {
+                List<String> names = problems.stream()
+                        .map(p -> {
+                            int i = p.lastIndexOf('/');
+                            return i >= 0 ? p.substring(i + 1) : p;
+                        })
+                        .limit(5)
+                        .toList();
+                String suffix = names.isEmpty() ? "" : "：" + String.join("、", names)
+                        + (problems.size() > 5 ? " 等" + problems.size() + " 个" : "");
+                h.setWarning("有 " + (h.getFailedFileCount() + h.getEmptyFileCount())
+                        + " 个文件未识别/未解析出元数据，已跳过（可能传错目录或格式不支持，结果可能不完整）" + suffix);
             }
             health.add(h);
         }
@@ -523,7 +533,8 @@ public class ComparePipeline {
                 sb.append("；");
             }
             sb.append(h.getSourceType()).append('(').append(h.getEntityCount())
-                    .append("实体/").append(h.getFailedFileCount()).append("失败)");
+                    .append("实体/").append(h.getFailedFileCount()).append("失败/")
+                    .append(h.getEmptyFileCount()).append("未识别)");
             if (!h.isHealthy()) {
                 sb.append("⚠");
             }

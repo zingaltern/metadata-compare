@@ -26,18 +26,22 @@ spring:
     console:
       enabled: true
       path: /h2-console
-  # 邮件：默认未配置 SMTP，将优雅降级（仅记录日志不发信）
+  # 邮件：默认未配置 SMTP，将优雅降级（仅记录日志不发信）。
+  # 需要发信时用环境变量注入即可，例如（QQ/Foxmail 个人邮箱，密码为“授权码”而非登录密码）：
+  #   MAIL_HOST=smtp.qq.com MAIL_PORT=465 MAIL_USER=you@foxmail.com MAIL_PASSWORD=<授权码>
   mail:
-    host: ""
-    port: 25
-    username: ""
-    password: ""
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: false
+          auth: ${MAIL_SMTP_AUTH:true}
           starttls:
-            enable: false
+            enable: ${MAIL_STARTTLS:false}
+          ssl:
+            enable: ${MAIL_SMTP_SSL:true}
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
