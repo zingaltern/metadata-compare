@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DDM 模型样例（XML 形式）。字段名使用英文，与生产中违规中文名形成对比。 -->
+<ddm>
+    <entity name="CUSTOMER">
+        <field name="CUST_ID" type="BIGINT" nullable="false" comment="客户ID"/>
+        <field name="CUST_NAME" type="VARCHAR" length="100" nullable="false" comment="客户姓名"/>
+        <field name="CUST_EMAIL" type="VARCHAR" length="120" nullable="true" comment="邮箱"/>
+        <field name="CREATE_TIME" type="DATETIME" nullable="true" comment="创建时间"/>
+    </entity>
+    <entity name="ORDER">
+        <field name="ORDER_ID" type="BIGINT" nullable="false" comment="订单ID"/>
+        <field name="CUST_ID" type="BIGINT" nullable="false" comment="客户ID"/>
+        <field name="ORDER_AMT" type="DECIMAL" length="10" precision="2" nullable="false" comment="订单金额"/>
+        <field name="ORDER_TIME" type="DATETIME" nullable="true" comment="下单时间"/>
+    </entity>
+</ddm>
