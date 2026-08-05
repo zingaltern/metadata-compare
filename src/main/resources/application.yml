@@ -1,0 +1,78 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: metadata-compare
+  # 文件上传大小限制（网页上传元数据文件用）
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  # 默认 H2（MySQL 兼容模式），开箱即跑；生产用 --spring.profiles.active=mysql
+  datasource:
+    url: jdbc:h2:mem:dqc;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      encoding: UTF-8
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  # 邮件：默认未配置 SMTP，将优雅降级（仅记录日志不发信）
+  mail:
+    host: ""
+    port: 25
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+# ===== 业务配置 =====
+app:
+  # 输入文件根目录（按文档 2.4 规范）
+  input:
+    base-dir: ./data/input
+  # 登录鉴权（一期收尾）：默认启用。生产务必修改 password；本地演示可设 enabled: false
+  security:
+    enabled: true
+    user: admin
+    password: admin123
+  # 规则文件：文件系统路径，支持热加载（每分钟检测变更）；首次启动会自动从 classpath 拷贝
+  rules:
+    path: ./rules/compare-rules.yml
+    hot-reload-seconds: 60
+  # 定时调度：每 N 秒扫描一次到期任务
+  scheduler:
+    poll-seconds: 30
+  # 复核工单编号前缀
+  ticket:
+    no-prefix: RT
+  # 单条规则执行超时（毫秒）
+  rule:
+    timeout-ms: 3000
+
+logging:
+  level:
+    root: INFO
+    com.dqc.compare: DEBUG

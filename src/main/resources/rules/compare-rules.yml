@@ -1,0 +1,102 @@
+# ============================================================
+# 比对规则定义（QLExpress4 / YAML）
+# 支持热加载：默认每分钟检测文件变更（见 application.yml app.rules.hot-reload-seconds）
+#
+# 变量上下文（由比对流水线注入，按 表/字段 关联匹配后逐条构建）：
+#   tableName      : 表名/实体名/接口名 (String)
+#   field          : 当前字段 (FieldMeta)            —— 用于字段级硬规则
+#   prodField      : 生产 DDL 侧字段 (FieldMeta|null)
+#   modelField     : DDM 模型侧字段 (FieldMeta|null)
+#   soaField       : SOA 接口侧字段 (FieldMeta|null)
+#   specField      : 文件规范侧字段 (FieldMeta|null)
+#   fileSpec       : 文件规范侧表 (StandardMetadata|null)，含 extra.deliveryType
+#
+# 自定义函数（已在 RuleEngine 注册）：
+#   hasChinese(s)                   : 是否包含中文字符（推荐用于中文名检测，基于码点判断，无转义陷阱）
+#   regexMatch(s, regex)            : 正则匹配（注意：QLExpress 会吞掉字符串中的反斜杠，
+#                                    因此正则内不要写 \\ 转义；如需中文检测请直接用 hasChinese）
+#   typeCompatible(a, b)            : 类型兼容性（归一化后比较）
+#   hasTimestampField(fields)       : 是否含时间戳字段
+#
+# action: REPORT_ONLY（仅记录） | CREATE_REVIEW_TICKET（建复核工单）
+# severity: CRITICAL | WARNING | INFO
+# scope: FIELD（逐字段） | TABLE（整表）
+# category: VIOLATION | STRUCTURE | LOGIC
+# message: 消息模板，占位符 ${tableName}/${fieldName}/${prodLength}/${modelLength}/${prodType}/
+#          ${modelType}/${chineseFieldName}/${soaDeliveryType}/${specDeliveryType} 等；缺省用通用文案。
+# fieldNameFromSource: true 时结果/工单中的字段名取"来源侧真实字段名"（如中文字段名），否则用逻辑字段名。
+# ============================================================
+rules:
+  - name: "中文字符检测"
+    severity: CRITICAL
+    category: VIOLATION
+    action: CREATE_REVIEW_TICKET
+    scope: FIELD
+    fieldNameFromSource: true
+    message: "字段 [{chineseFieldName}] 名称包含中文字符（违规）"
+    # 覆盖四个来源，任一来源字段名含中文即命中（字段映射后异构名也能精确归因）
+    condition: "(prodField != null && hasChinese(prodField.fieldName)) || (modelField != null && hasChinese(modelField.fieldName)) || (soaField != null && hasChinese(soaField.fieldName)) || (specField != null && hasChinese(specField.fieldName))"
+
+  - name: "字段长度不一致"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "字段 {fieldName} 生产长度({prodLength}) 与模型长度({modelLength}) 不一致"
+    condition: "prodField != null && modelField != null && prodField.length != null && modelField.length != null && prodField.length != modelField.length"
+
+  - name: "字段精度不一致"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "字段 {fieldName} 生产精度({prodPrecision}) 与模型精度({modelPrecision}) 不一致"
+    condition: "prodField != null && modelField != null && prodField.precision != null && modelField.precision != null && prodField.precision != modelField.precision"
+
+  - name: "字段类型不兼容"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "字段 {fieldName} 生产类型({prodType}) 与模型类型({modelType}) 不兼容"
+    condition: "prodField != null && modelField != null && !typeCompatible(prodField.dataType, modelField.dataType)"
+
+  - name: "模型缺失生产字段"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "生产字段 {fieldName} 在 DDM 模型中缺失"
+    condition: "prodField != null && modelField == null"
+
+  - name: "生产缺失模型字段"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "模型字段 {fieldName} 在生产 DDL 中缺失"
+    condition: "modelField != null && prodField == null"
+
+  - name: "必填字段在模型中变为可空"
+    severity: WARNING
+    category: STRUCTURE
+    action: REPORT_ONLY
+    scope: FIELD
+    message: "必填字段 {fieldName} 在模型中变为可空（生产非空）"
+    condition: "prodField != null && modelField != null && prodField.nullable == false && modelField.nullable == true"
+
+  - name: "增量文件缺少时间戳"
+    severity: CRITICAL
+    category: VIOLATION
+    action: CREATE_REVIEW_TICKET
+    scope: TABLE
+    message: "增量下发表 {tableName} 缺少时间戳字段"
+    condition: "fileSpec != null && fileSpec.extra.deliveryType == 'INCREMENTAL' && !hasTimestampField(fileSpec.fields)"
+
+  - name: "下发方式不一致"
+    severity: WARNING
+    category: LOGIC
+    action: REPORT_ONLY
+    scope: TABLE
+    message: "表 {tableName} 的 SOA 下发方式({soaDeliveryType}) 与文件规范({specDeliveryType}) 不一致"
+    condition: "fileSpec != null && soa != null && deliveryMismatch(fileSpec.deliveryType, soa.deliveryType)"

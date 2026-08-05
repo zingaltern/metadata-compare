@@ -1,0 +1,18 @@
+swagger: "2.0"
+info:
+  title: Customer API
+  version: "1.0.0"
+paths: {}
+definitions:
+  Customer:
+    type: object
+    x-deliveryType: FULL
+    properties:
+      custId:
+        type: integer
+        format: int64
+      custName:
+        type: string
+      createTime:
+        type: string
+        format: date-time

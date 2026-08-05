@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 · 元数据自动化比对系统</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 21V11h3.2c3 0 4.8 1.6 4.8 5s-1.8 5-4.8 5H9zm3-2.4h.2c1.5 0 2.4-.8 2.4-2.6s-.9-2.6-2.4-2.6H12v5.2zM19 21v-7h2.4v1.3c.6-.9 1.6-1.4 2.8-1.4.3 0 .6 0 .9.1v2.3c-.3-.1-.7-.2-1.1-.2-1.3 0-2.2.7-2.2 2.2V21H19z' fill='white'/%3E%3C/svg%3E" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --pri:#4f46e5; --pri-2:#7c3aed; --pri-soft:#6366f1;
+      --txt:#1e293b; --mut:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    }
+    html,body{height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--txt); background:var(--bg);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .wrap{
+      display:grid; grid-template-columns:1.05fr .95fr;
+      width:min(940px,94vw); min-height:560px;
+      background:#fff; border-radius:20px; overflow:hidden;
+      box-shadow:0 24px 60px -20px rgba(30,41,59,.35), 0 8px 20px -12px rgba(30,41,59,.2);
+      animation:rise .5s cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+    /* 左侧品牌区 */
+    .brand{
+      position:relative; padding:46px 44px; color:#fff; overflow:hidden;
+      background:linear-gradient(150deg,#4f46e5 0%,#6d28d9 55%,#7c3aed 100%);
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .brand::before,.brand::after{
+      content:""; position:absolute; border-radius:50%; filter:blur(8px); opacity:.45;
+    }
+    .brand::before{width:240px;height:240px;right:-70px;top:-60px;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 70%)}
+    .brand::after{width:300px;height:300px;left:-90px;bottom:-110px;background:radial-gradient(circle,rgba(129,140,248,.55),transparent 70%)}
+    .brand > *{position:relative;z-index:1}
+    .logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:18px;letter-spacing:.3px}
+    .logo .mark{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .brand h1{font-size:27px;line-height:1.35;font-weight:700;margin-top:34px}
+    .brand .sub{margin-top:12px;font-size:14px;opacity:.9;line-height:1.7;max-width:340px}
+    .feats{margin-top:30px;display:flex;flex-direction:column;gap:13px}
+    .feat{display:flex;gap:11px;align-items:flex-start;font-size:13.5px;opacity:.95}
+    .feat .dot{flex:0 0 auto;width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin-top:1px}
+    .brand .foot{font-size:12px;opacity:.7}
+
+    /* 右侧表单区 */
+    .form-side{display:flex;align-items:center;justify-content:center;padding:44px 48px;background:#fff}
+    .form-card{width:100%;max-width:340px}
+    .form-card .title{font-size:23px;font-weight:700;color:var(--txt)}
+    .form-card .desc{margin:8px 0 26px;font-size:13.5px;color:var(--mut)}
+    .field{margin-bottom:16px;position:relative}
+    .field label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:7px}
+    .field .box{position:relative}
+    .field input{
+      width:100%;padding:12px 14px 12px 42px;font-size:14px;color:var(--txt);
+      border:1.5px solid var(--line);border-radius:11px;background:#f8fafc;transition:.18s;
+    }
+    .field input::placeholder{color:#94a3b8}
+    .field input:focus{border-color:var(--pri-soft);background:#fff;box-shadow:0 0 0 4px rgba(99,102,241,.14);outline:none}
+    .field .ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
+    .field input:focus + .ico{color:var(--pri-soft)}
+    .submit{
+      width:100%;margin-top:8px;padding:13px;border:0;border-radius:11px;cursor:pointer;
+      font-size:15px;font-weight:600;color:#fff;
+      background:linear-gradient(135deg,var(--pri),var(--pri-2));
+      box-shadow:0 10px 22px -10px rgba(79,70,229,.7);transition:.18s;
+    }
+    .submit:hover{transform:translateY(-1px);box-shadow:0 14px 26px -10px rgba(79,70,229,.8)}
+    .submit:active{transform:translateY(0)}
+    .alert{
+      display:none;align-items:center;gap:8px;margin-bottom:18px;padding:11px 13px;
+      background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;font-size:13px;
+    }
+    .alert.show{display:flex;animation:shake .35s}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+    .hint{margin-top:20px;padding:11px 13px;border-radius:10px;background:#f5f3ff;border:1px solid #ede9fe;font-size:12.5px;color:#6d28d9;line-height:1.6}
+    .hint b{font-weight:700}
+    @media(max-width:780px){
+      .wrap{grid-template-columns:1fr;min-height:auto}
+      .brand{display:none}
+      .form-side{padding:40px 30px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 品牌区 -->
+    <aside class="brand">
+      <div class="logo">
+        <span class="mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7l8-4 8 4-8 4-8-4z" fill="#fff"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>
+        </span>
+        元数据自动化比对
+      </div>
+      <div>
+        <h1>让四类元数据<br/>自动对齐、违规可溯</h1>
+        <p class="sub">面向生产 DDL、DDM 模型、SOA 接口与文件规范的一站式元数据比对与复核平台。</p>
+        <div class="feats">
+          <div class="feat"><span class="dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>多源解析 · 异构命名自动映射</div>
+          <div class="feat"><span class="dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>规则热加载 · 定时巡检自动触发</div>
+          <div class="feat"><span class="dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>违规分级 · 一键生成复核工单</div>
+        </div>
+      </div>
+      <div class="foot">元数据自动化比对系统 · 一期控制台</div>
+    </aside>
+
+    <!-- 表单区 -->
+    <main class="form-side">
+      <div class="form-card">
+        <div class="title">欢迎登录</div>
+        <div class="desc">请使用系统账号登录以继续使用</div>
+
+        <div class="alert" id="alert">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#b91c1c" stroke-width="1.8"/><path d="M12 7v6M12 16.5v.5" stroke="#b91c1c" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span id="alertText">账号或密码错误，请重试</span>
+        </div>
+
+        <form method="post" action="/login" id="loginForm" autocomplete="off">
+          <div class="field">
+            <label for="username">账号</label>
+            <div class="box">
+              <input id="username" name="username" type="text" placeholder="请输入账号" autofocus />
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M5 19c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">密码</label>
+            <div class="box">
+              <input id="password" name="password" type="password" placeholder="请输入密码" />
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V8a4 4 0 018 0v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <button class="submit" type="submit">登 录</button>
+        </form>
+
+        <div class="hint">演示账号：<b>admin</b> / <b>admin123</b><br/>生产环境请务必在 application.yml 的 app.security 中修改密码。</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 错误回显：Spring Security 登录失败会跳回 /login.html?error=true
+    const params = new URLSearchParams(location.search);
+    if (params.get('error') === 'true') {
+      document.getElementById('alert').classList.add('show');
+    }
+    // 回车聚焦密码框
+    document.getElementById('username').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('password').focus();
+    });
+  </script>
+</body>
+</html>

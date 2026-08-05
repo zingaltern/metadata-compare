@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  title: Account API
+  version: "1.0.0"
+paths: {}
+definitions:
+  ACCT_INFO:
+    type: object
+    x-deliveryType: FULL
+    properties:
+      acctId:
+        type: integer
+        format: int64
+      acctName:
+        type: string
+      acctEmail:
+        type: string
+      createTime:
+        type: string
+        format: date-time

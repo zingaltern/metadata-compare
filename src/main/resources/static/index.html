@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>元数据自动化比对系统 · 控制台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 21V11h3.2c3 0 4.8 1.6 4.8 5s-1.8 5-4.8 5H9zm3-2.4h.2c1.5 0 2.4-.8 2.4-2.6s-.9-2.6-2.4-2.6H12v5.2zM19 21v-7h2.4v1.3c.6-.9 1.6-1.4 2.8-1.4.3 0 .6 0 .9.1v2.3c-.3-.1-.7-.2-1.1-.2-1.3 0-2.2.7-2.2 2.2V21H19z' fill='white'/%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --pri:#4f46e5; --pri-2:#7c3aed; --pri-soft:#6366f1; --pri-bg:#eef2ff;
+      --crit:#e11d48; --warn:#d97706; --ok:#059669; --info:#4f46e5;
+      --txt:#1e293b; --mut:#64748b; --line:#e8ecf3; --bg:#f1f5f9; --card:#fff;
+      --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px -16px rgba(15,23,42,.25);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         background:var(--bg);color:var(--txt);line-height:1.6}
+
+    /* 顶部导航 */
+    .nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
+         border-bottom:1px solid var(--line);padding:0 26px;height:62px;display:flex;align-items:center;justify-content:space-between}
+    .nav .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:.2px}
+    .nav .brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--pri),var(--pri-2));
+         display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -6px rgba(79,70,229,.7)}
+    .nav .user{display:flex;align-items:center;gap:12px;font-size:13.5px;color:#475569}
+    .nav .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#a78bfa);
+         color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+    .nav .user a{color:var(--mut);text-decoration:none;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;transition:.15s}
+    .nav .user a:hover{color:var(--pri);border-color:#c7d2fe;background:var(--pri-bg)}
+
+    .wrap{max-width:1120px;margin:0 auto;padding:26px 22px 50px}
+    .page-head{margin:4px 4px 20px}
+    .page-head h1{margin:0;font-size:21px;font-weight:700}
+    .page-head p{margin:6px 0 0;color:var(--mut);font-size:13.5px}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow)}
+    .card-h{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+    .card-h .ic{width:30px;height:30px;border-radius:9px;background:var(--pri-bg);color:var(--pri);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+    .card-h h3{margin:0;font-size:15.5px;font-weight:700}
+    .card-h .sub{margin:2px 0 0;color:var(--mut);font-size:13px}
+
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    button{background:linear-gradient(135deg,var(--pri),var(--pri-2));color:#fff;border:0;border-radius:10px;
+           padding:11px 20px;font-size:14px;cursor:pointer;font-weight:600;transition:.15s;
+           box-shadow:0 10px 22px -12px rgba(79,70,229,.8)}
+    button:hover{transform:translateY(-1px);box-shadow:0 14px 26px -12px rgba(79,70,229,.9)}
+    button:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    button.ghost{background:#fff;color:var(--pri);border:1px solid #c7d2fe;box-shadow:none}
+    button.ghost:hover{background:var(--pri-bg);box-shadow:none}
+    a.btn{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#475569;text-decoration:none;
+          border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:13.5px;font-weight:600;transition:.15s}
+    a.btn:hover{border-color:#c7d2fe;color:var(--pri);background:var(--pri-bg)}
+
+    /* 统计条 */
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+    .stat{background:linear-gradient(180deg,#fbfcff,#f6f8ff);border:1px solid var(--line);border-radius:13px;padding:14px 16px;text-align:center;position:relative;overflow:hidden}
+    .stat::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--pri-soft);opacity:.5}
+    .stat.crit::after{background:var(--crit)} .stat.warn::after{background:var(--warn)}
+    .stat.ok::after{background:var(--ok)} .stat.tk::after{background:#0ea5e9}
+    .stat b{display:block;font-size:26px;line-height:1.1;font-weight:800;color:#0f172a}
+    .stat span{font-size:12px;color:var(--mut)}
+    .stat.crit b{color:var(--crit)} .stat.warn b{color:var(--warn)} .stat.ok b{color:var(--ok)} .stat.tk b{color:#0ea5e9}
+    @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+    th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+    th{color:var(--mut);font-weight:600;background:#f8fafc;font-size:12.5px}
+    tbody tr:hover{background:#fafbff}
+    .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .pill.CRITICAL{background:#fff1f2;color:var(--crit)} .pill.WARNING{background:#fffbeb;color:var(--warn)}
+    .pill.INFO{background:#eef2ff;color:var(--info)}
+    .muted{color:var(--mut);font-size:13px}
+    code{background:#f1f5f9;padding:2px 7px;border-radius:6px;font-size:12px;color:#475569}
+    .err{color:var(--crit);font-size:13px}
+    details{margin-top:10px} summary{cursor:pointer;color:var(--pri);font-size:13px;font-weight:600}
+    pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:12px;line-height:1.5}
+
+    .file-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    select,input[type=file]{font-size:13.5px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;background:#f8fafc;color:var(--txt)}
+    select:focus,input[type=file]:focus{outline:none;border-color:var(--pri-soft);background:#fff}
+    label.chk{font-size:13px;color:#475569;display:flex;align-items:center;gap:6px;user-select:none}
+    ul.tips{margin:8px 0 0;padding-left:18px;color:var(--mut);font-size:13px}
+    ul.tips li{margin:4px 0}
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand">
+    <span class="mark">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 7l8-4 8 4-8 4-8-4z" fill="#fff"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>
+    </span>
+    元数据自动化比对
+  </div>
+  <div class="user">
+    <span class="avatar" id="avatar">A</span>
+    <span>当前用户：<b id="username">…</b></span>
+    <a href="/logout">退出登录</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-head">
+    <h1>比对控制台</h1>
+    <p>生产 DDL / DDM 模型 / SOA 接口 / 文件规范 四类元数据的自动比对与违规复核</p>
+  </div>
+
+  <!-- 操作区 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill="currentColor"/></svg></span>
+      <div><h3>触发比对</h3><p class="sub">手动执行一次全量比对，或查看定时巡检的运行结果</p></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button id="triggerBtn">▶ 触发一次比对</button>
+      <a class="btn" href="/h2-console/" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.7"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" stroke="currentColor" stroke-width="1.7"/></svg>
+        H2 数据库控制台</a>
+      <a class="btn" href="/api/compare/tasks" target="_blank">任务列表</a>
+      <a class="btn" href="/api/tickets?status=PENDING" target="_blank">待复核工单</a>
+    </div>
+    <div id="runStats" class="stats" style="display:none">
+      <div class="stat"><b id="sTotal">-</b><span>总数</span></div>
+      <div class="stat crit"><b id="sCrit">-</b><span>严重</span></div>
+      <div class="stat warn"><b id="sWarn">-</b><span>警告</span></div>
+      <div class="stat tk"><b id="sTicket">-</b><span>工单</span></div>
+      <div class="stat ok"><b id="sDur">-</b><span>耗时(ms)</span></div>
+    </div>
+    <div id="runErr" class="err" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <!-- 比对明细 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h3>本次比对明细</h3><p class="sub">展示命中的规则与字段；严重(CRITICAL)项会生成复核工单</p></div>
+    </div>
+    <div id="resultBox" class="muted" style="margin-top:10px">尚未运行。点击上方「触发一次比对」。</div>
+  </div>
+
+  <!-- 文件管理 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L8 8m4-4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h3>文件管理（上传 / 替换元数据）</h3><p class="sub">按来源上传最新导出文件；比对时程序读取对应目录，建议每个来源仅保留最新一份</p></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <select id="srcSel">
+        <option value="production">生产 DDL</option>
+        <option value="ddm">DDM 模型</option>
+        <option value="soa">SOA 接口</option>
+        <option value="file_spec">文件规范</option>
+      </select>
+      <input type="file" id="fileInput" />
+      <label class="chk"><input type="checkbox" id="overwrite" /> 覆盖同名</label>
+      <button id="uploadBtn">⬆ 上传</button>
+      <button class="ghost" id="refreshFiles">刷新列表</button>
+    </div>
+    <div id="uploadMsg" class="muted" style="margin-top:10px"></div>
+    <div id="fileListBox" class="muted" style="margin-top:12px">选择来源后点击「刷新列表」。</div>
+  </div>
+
+  <!-- 快速说明 -->
+  <div class="card">
+    <div class="card-h">
+      <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5M12 8v.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+      <div><h3>快速说明</h3></div>
+    </div>
+    <ul class="tips">
+      <li>样例数据位于 <code>data/input/</code> 下的 production / ddm / soa / file_spec 四类目录。</li>
+      <li>比对规则在 <code>rules/compare-rules.yml</code>，修改后 60 秒自动热加载，无需重启。</li>
+      <li>定时巡检由 <code>app.scheduler.poll-seconds</code>(默认30s) 轮询，按各任务 cron 自动执行。</li>
+      <li>邮件 SMTP 未配置时自动降级（仅记日志不发信）。</li>
+    </ul>
+    <details>
+      <summary>查看最近一次原始响应</summary>
+      <pre id="rawBox">（触发后显示）</pre>
+    </details>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+async function trigger(){
+  $('triggerBtn').disabled = true;
+  $('triggerBtn').textContent = '运行中…';
+  $('runErr').style.display = 'none';
+  try{
+    const res = await fetch('/api/compare/trigger', {method:'POST'});
+    const data = await res.json();
+    const report = Array.isArray(data) ? data[0] : data;
+    $('rawBox').textContent = JSON.stringify(report, null, 2);
+    $('runStats').style.display = 'grid';
+    $('sTotal').textContent = report.totalCount ?? '-';
+    $('sCrit').textContent = report.criticalCount ?? '-';
+    $('sWarn').textContent = report.warningCount ?? '-';
+    $('sTicket').textContent = report.ticketCount ?? '-';
+    $('sDur').textContent = report.durationMs ?? '-';
+    renderResults(report.results || []);
+  }catch(e){
+    $('runErr').style.display = 'block';
+    $('runErr').textContent = '请求失败：' + e.message;
+  }finally{
+    $('triggerBtn').disabled = false;
+    $('triggerBtn').textContent = '▶ 触发一次比对';
+  }
+}
+function renderResults(rows){
+  if(!rows.length){ $('resultBox').innerHTML = '<span class="muted">本次无命中。</span>'; return; }
+  let html = '<table><thead><tr><th>级别</th><th>规则</th><th>表</th><th>字段</th><th>说明</th></tr></thead><tbody>';
+  for(const r of rows){
+    html += `<tr><td><span class="pill ${r.severity}">${r.severity}</span></td>`
+          + `<td>${esc(r.ruleName||'')}</td>`
+          + `<td>${esc(r.tableName||'-')}</td>`
+          + `<td>${esc(r.fieldName||'-')}</td>`
+          + `<td class="muted">${esc(r.message||'')}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  $('resultBox').innerHTML = html;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+$('triggerBtn').addEventListener('click', trigger);
+
+// ---- 当前用户 ----
+(async function loadMe(){
+  try { const r = await fetch('/api/me'); const d = await r.json();
+        $('username').textContent = d.username || '-';
+        $('avatar').textContent = (d.username || 'A').charAt(0).toUpperCase();
+  }
+  catch(e){ $('username').textContent = '未登录'; }
+})();
+
+// ---- 文件上传 / 列表 / 删除 ----
+$('uploadBtn').addEventListener('click', async () => {
+  const file = $('fileInput').files[0];
+  if (!file) { $('uploadMsg').textContent = '请先选择文件'; return; }
+  const src = $('srcSel').value;
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('source', src);
+  fd.append('overwrite', $('overwrite').checked);
+  $('uploadMsg').textContent = '上传中…';
+  try {
+    const res = await fetch('/api/files/upload', { method:'POST', body: fd });
+    const d = await res.json();
+    if (!res.ok) { $('uploadMsg').textContent = '上传失败：' + (d.error || res.status); return; }
+    $('uploadMsg').textContent = '✅ 已上传：' + d.name + '（' + d.size + ' 字节）';
+    refreshFiles();
+  } catch(e){ $('uploadMsg').textContent = '上传失败：' + e.message; }
+});
+
+$('refreshFiles').addEventListener('click', refreshFiles);
+async function refreshFiles(){
+  const src = $('srcSel').value;
+  try {
+    const res = await fetch('/api/files?source=' + src);
+    const list = await res.json();
+    if (!list.length) { $('fileListBox').innerHTML = '<span class="muted">该来源暂无文件。</span>'; return; }
+    let html = '<table><thead><tr><th>文件名</th><th>大小</th><th>修改时间</th><th></th></tr></thead><tbody>';
+    for (const f of list) {
+      html += '<tr><td>' + esc(f.name) + '</td><td class="muted">' + (f.size||'-') + '</td><td class="muted">' + esc(f.modified||'-') + '</td>'
+            + '<td><button class="ghost" style="padding:6px 12px" onclick="delFile(\'' + src + '\',\'' + esc(f.name) + '\')">删除</button></td></tr>';
+    }
+    html += '</tbody></table>';
+    $('fileListBox').innerHTML = html;
+  } catch(e){ $('fileListBox').textContent = '加载失败：' + e.message; }
+}
+async function delFile(src, name){
+  if (!confirm('确认删除 ' + name + ' ？')) return;
+  try {
+    const res = await fetch('/api/files?source=' + src + '&name=' + encodeURIComponent(name), { method:'DELETE' });
+    const d = await res.json();
+    if (!res.ok) { alert('删除失败：' + (d.error||res.status)); return; }
+    refreshFiles();
+  } catch(e){ alert('删除失败：' + e.message); }
+}
+</script>
+</body>
+</html>

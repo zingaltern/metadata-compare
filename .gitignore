@@ -1,0 +1,15 @@
+# 构建产物
+target/
+*.class
+
+# 运行时产物（日志、规则运行时副本如需纳入版本管理可移除以下两行）
+logs/
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+
+# 本地环境
+*.log
+*.tmp

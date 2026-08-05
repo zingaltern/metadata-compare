@@ -1,0 +1,35 @@
+# 表名 + 字段名对照表（支持热加载：修改后约 60 秒自动生效，无需重启）
+# 作用：
+#   1) 表级：把生产库 / DDM / SOA 里"同一张表的不同名字"归一到 logicalName，使异构命名也能关联比对。
+#   2) 字段级：把同一张表里"同一字段的不同名字"归一到逻辑字段名，避免异名被误报为"字段缺失"。
+# 三个老系统（生产库/DDM/SOA）均无需改名。匹配不区分大小写、自动忽略反引号与前后空格。
+mappings:
+  - logicalName: ACCOUNT
+    aliases:
+      - T_ACCT
+      - ACCT_MODEL
+      - ACCT_INFO
+    fields:
+      - logicalName: ACCT_ID
+        aliases: [acctId]
+      - logicalName: ACCT_NAME
+        aliases: [acctName]
+      - logicalName: ACCT_EMAIL
+        aliases: [acctEmail]
+      - logicalName: CREATE_TIME
+        aliases: [createTime]
+
+  - logicalName: CUSTOMER
+    aliases:
+      - T_CUST
+      - CUSTOMER
+      - CUST_INFO
+    fields:
+      - logicalName: CUST_ID
+        aliases: [custId]
+      - logicalName: CUST_NAME
+        aliases: [客户名, custName]
+      - logicalName: CUST_EMAIL
+        aliases: [custEmail]
+      - logicalName: CREATE_TIME
+        aliases: [createTime]

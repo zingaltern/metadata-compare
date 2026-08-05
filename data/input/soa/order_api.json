@@ -1,0 +1,19 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Order API", "version": "1.0.0" },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "x-deliveryType": "FULL",
+        "properties": {
+          "orderId":   { "type": "integer", "format": "int64", "nullable": false },
+          "custId":    { "type": "integer", "format": "int64", "nullable": false },
+          "orderAmt":  { "type": "number",  "format": "double", "nullable": false },
+          "orderTime": { "type": "string",  "format": "date-time", "nullable": true }
+        }
+      }
+    }
+  }
+}
