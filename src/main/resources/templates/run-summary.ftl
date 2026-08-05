@@ -34,7 +34,7 @@
                     <td style="padding:6px 8px;">${t.tableName!''}</td>
                     <td style="padding:6px 8px;">${t.fieldName!'（整表）'}</td>
                     <td style="padding:6px 8px;">${t.message!''}</td>
-                    <td style="padding:6px 8px;"><a href="${baseUrl}/#tickets?id=${t.id}">查看工单</a></td>
+                    <td style="padding:6px 8px;"><a href="${baseUrl}/go?tab=tickets&amp;id=${t.id}">查看工单</a></td>
                 </tr>
                 </#list>
             </table>

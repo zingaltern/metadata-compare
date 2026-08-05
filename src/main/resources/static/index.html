@@ -253,10 +253,6 @@ function showTab(name){
   location.hash = name === 'console' ? '' : name;
 }
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
-const hashParts = location.hash.replace('#','').split('?');
-const initialTab = hashParts[0] || 'console';
-const ticketFocusId = Number(new URLSearchParams(hashParts[1] || '').get('id')) || null;
-showTab(['tasks','tickets'].includes(initialTab) ? initialTab : 'console');
 
 // ---- 触发比对 ----
 async function trigger(){
@@ -537,6 +533,12 @@ setInterval(() => {
   if (activeTab === 'tasks') { loadTasks(); }
   if (activeTab === 'tickets' && !reviewingId) { loadTickets(); }
 }, 30000);
+
+// 初始化：放到脚本末尾，确保 tasksPage/ticketsPage 等变量已声明（否则直达链接会报 TDZ 错误）
+const hashParts = location.hash.replace('#','').split('?');
+const initialTab = hashParts[0] || 'console';
+const ticketFocusId = Number(new URLSearchParams(hashParts[1] || '').get('id')) || null;
+showTab(['tasks','tickets'].includes(initialTab) ? initialTab : 'console');
 </script>
 </body>
 </html>
