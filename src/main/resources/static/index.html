@@ -154,6 +154,7 @@
       <label class="chk"><input type="checkbox" id="overwrite" /> 覆盖同名</label>
       <button id="uploadBtn">⬆ 上传</button>
       <button class="ghost" id="refreshFiles">刷新列表</button>
+      <span id="fmtHint" class="muted" style="font-size:12.5px"></span>
     </div>
     <div id="uploadMsg" class="muted" style="margin-top:10px"></div>
     <div id="fileListBox" class="muted" style="margin-top:12px">正在加载文件列表…</div>
@@ -258,6 +259,17 @@ $('uploadBtn').addEventListener('click', async () => {
 
 $('refreshFiles').addEventListener('click', refreshFiles);
 $('srcSel').addEventListener('change', refreshFiles);
+const FMT_HINTS = {
+  production: '支持：.sql（MySQL DDL）',
+  ddm: '支持：.xml / .json（DDM 模型）',
+  soa: '支持：.yaml / .yml / .json（OpenAPI 3 / Swagger 2）',
+  file_spec: '支持：.xlsx / .xls（文件规范模板）'
+};
+function updateFmtHint(){
+  const base = FMT_HINTS[$('srcSel').value] || '';
+  $('fmtHint').textContent = base + '；其他格式会被跳过并在比对报告中提示';
+}
+$('srcSel').addEventListener('change', updateFmtHint);
 async function refreshFiles(){
   const src = $('srcSel').value;
   try {
@@ -285,6 +297,7 @@ async function delFile(src, name){
 }
 // 进入页面自动加载当前来源的文件列表；切换来源时也会自动刷新
 refreshFiles();
+updateFmtHint();
 </script>
 </body>
 </html>

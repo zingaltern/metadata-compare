@@ -140,7 +140,7 @@ loadTickets();
 // 自动刷新：页面可见时每 60 秒重载工单列表；有复核表单打开时暂停，避免打断输入
 setInterval(() => {
   if (document.visibilityState === 'visible' && !reviewingId) { loadTickets(); }
-}, 60000);
+}, 30000);
 </script>
 </body>
 </html>
