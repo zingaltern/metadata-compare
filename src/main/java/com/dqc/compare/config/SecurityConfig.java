@@ -94,7 +94,9 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login.html")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/", true)
+                // 不强制跳回首页：登录后优先回到登录前想访问的地址（如邮件直达链接 /go?tab=tickets&id=N），
+                // 无保存请求时才回首页。否则非登录态点直达链接登录后定位信息会丢失。
+                .defaultSuccessUrl("/")
                 .failureUrl("/login.html?error=true")
                 .permitAll())
             .httpBasic(Customizer.withDefaults())
