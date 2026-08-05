@@ -229,7 +229,8 @@ public class ComparePipeline {
                 }
             }
 
-            // 5) 运行汇总邮件
+            // 5) 运行汇总邮件：先计算耗时，否则邮件里 durationMs 为 0
+            report.setDurationMs(System.currentTimeMillis() - start);
             trySendSummary(config, report);
 
             // 6) 更新配置最后执行时间
