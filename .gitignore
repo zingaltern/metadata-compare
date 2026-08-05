@@ -16,3 +16,25 @@ logs/
 
 # 回收站（文件管理里"删除"的文件）
 data/input/.trash/
+
+# 用户通过网页上传的文件不纳入版本管理（仅跟踪内置样例数据，避免测试上传污染仓库）
+data/input/*
+!data/input/ddm/
+!data/input/soa/
+!data/input/production/
+!data/input/file_spec/
+data/input/ddm/*
+!data/input/ddm/account_model.json
+!data/input/ddm/customer_model.xml
+!data/input/ddm/product_model.json
+data/input/soa/*
+!data/input/soa/account_api.yaml
+!data/input/soa/customer_api.yaml
+!data/input/soa/order_api.json
+data/input/production/*
+!data/input/production/latest/
+data/input/production/latest/*
+!data/input/production/latest/ACCOUNT_DDL.sql
+!data/input/production/latest/customer_ddl.sql
+data/input/file_spec/*
+!data/input/file_spec/file_spec.xlsx
