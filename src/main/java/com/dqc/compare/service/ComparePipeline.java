@@ -431,7 +431,10 @@ public class ComparePipeline {
 
     private void trySendSummary(CompareTaskConfig config, CompareReport report) {
         if (config.getRecipients() == null || config.getRecipients().isBlank()) {
-            log.debug("跳过汇总邮件：任务[{}]未配置收件人", config.getTaskName());
+            // 由 DEBUG 提升为 WARN：收件人缺失会导致邮件完全不发送且无提示，易被误判为“功能坏掉”
+            log.warn("跳过汇总邮件：任务[{}]未配置收件人，本轮运行汇总不会发送。"
+                    + "如需邮件，请配置 app.notify.recipients（或环境变量 APP_NOTIFY_RECIPIENTS）后重启",
+                    config.getTaskName());
             return;
         }
         Map<String, Object> model = new LinkedHashMap<>();

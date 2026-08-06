@@ -45,6 +45,23 @@ java -jar target/metadata-compare.jar --server.port=8080   # 8080 被占用时�
 
 内置样例数据（`data/input/`）一次比对的预期结果：**total=6 / critical=2 / warning=4 / ticket=2**（详见下文“样例数据”）。
 
+### 邮件通知（可选，但建议配置）
+
+系统在每次运行结束后发送**一封汇总邮件**（内含本轮新增工单清单与直达链接；不逐工单发信，避免刷爆邮箱）。邮件默认关闭、不会发送，需**同时满足**以下条件：
+
+1. **配置 SMTP**：启动时注入环境变量（密码为邮箱"授权码"而非登录密码）：
+
+   ```bash
+   MAIL_HOST=smtp.qq.com MAIL_PORT=465 MAIL_USER=you@foxmail.com MAIL_PASSWORD=<授权码> \
+   java -jar target/metadata-compare.jar --server.port=8080
+   ```
+
+2. **配置收件人**：默认任务配置的收件人为空则邮件会被跳过。二选一：
+   - 环境变量 `APP_NOTIFY_RECIPIENTS=reviewer@example.com`（重启后自动恢复，注入 `app.notify.recipients`）；
+   - 或网页控制台 `PUT /api/config/tasks/1` 的 `recipients` 字段填写。
+
+> 未配置时系统会打印**明确 WARN 日志**（"SMTP 未配置" / "未配置收件人"），不会静默失败。排查邮件问题先看启动后的标准输出。
+
 ## 目录结构
 
 ```

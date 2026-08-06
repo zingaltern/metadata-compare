@@ -50,7 +50,9 @@ public class MailService {
     public void init() {
         this.enabled = mailProperties.getHost() != null && !mailProperties.getHost().isBlank();
         if (!enabled) {
-            log.warn("SMTP 未配置（spring.mail.host 为空），邮件通知将降级为仅记录日志。");
+            log.warn("SMTP 未配置（spring.mail.host 为空），邮件通知将降级为仅记录日志。"
+                    + " 启用发信请在启动时注入环境变量：MAIL_HOST、MAIL_USER、MAIL_PASSWORD，"
+                    + " 并配置收件人 APP_NOTIFY_RECIPIENTS（或 app.notify.recipients）。");
         } else {
             log.info("SMTP 已配置：{}，邮件通知已启用。", mailProperties.getHost());
         }
